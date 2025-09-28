@@ -1,87 +1,154 @@
 <!DOCTYPE html>
 <html lang="de" dir="ltr">
 <head>
+  <!--
+    HiBuy – Landing Page (überarbeitet)
+    Ziele:
+    • Bessere Struktur & Lesbarkeit
+    • Viele erklärende Kommentare (HTML/CSS/JS)
+    • Kleinere Accessibility- & Performance-Verbesserungen
+    • Gleiche Inhalte/Funktionen wie deine Vorlage
+
+    Hinweise:
+    • Für Produktion: CSS/JS in eigene Dateien auslagern, Assets minifizieren, 
+      Bild-Slides mit echten Bildern ersetzen, Form-Handler anbinden.
+  -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>HiBuy – Snacks & Getränke 24/7 | Automaten in Esslingen</title>
   <meta name="description" content="HiBuy: Moderne Snack- & Getränkeautomaten – kalt, warm & frisch. Aufstellung für Firmen & Standorte. 24/7 verfügbar in Esslingen und Umgebung." />
   <meta name="theme-color" content="#0f172a" />
+  <!-- Open Graph / Social -->
   <meta property="og:title" content="HiBuy – Snacks & Getränke 24/7" />
   <meta property="og:description" content="Moderne Automaten mit Getränken, Snacks & Kaffee. 24/7. Aufstellung für Unternehmen & Standorte." />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="de_DE" />
+
+  <!-- Icons & Manifest -->
   <link rel="icon" href="/assets/favicon.ico" />
   <link rel="manifest" href="/assets/site.webmanifest" />
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
   <style>
+    /*
+      ========== Design Tokens (CSS Custom Properties) ==========
+      Dunkel/hell wird via color-scheme & LocalStorage gesteuert.
+    */
     :root{
-      --bg: #0b1020;
-      --bg-elev: #0f172a;
-      --txt: #e5e7eb;
-      --muted:#9aa4b2;
-      --accent:#ff8c00;
-      --card:#0f172a;
-      --ring:rgba(255,255,255,.18);
+      --bg: #0b1020;          /* Seitenhintergrund dunkel */
+      --bg-elev: #0f172a;     /* Erhöhte Flächen (Cards, Header) */
+      --txt: #e5e7eb;         /* Primärer Text */
+      --muted:#9aa4b2;        /* Sekundärer Text */
+      --accent:#ff8c00;       /* Akzentfarbe (Buttons, Kicker) */
+      --card:#0f172a;         /* Karten-Hintergrund */
+      --ring:rgba(255,255,255,.18); /* Fokus-/Hover-Ring */
       --shadow: 0 20px 60px rgba(0,0,0,.35);
-      --radius:16px;
+      --radius:16px;          /* Basis-Radius */
     }
+
+    /* Helles Farbschema, wenn vom System bevorzugt (wird per Toggle überschrieben) */
     @media (prefers-color-scheme: light){
       :root{ --bg:#f6f7fb; --bg-elev:#ffffff; --txt:#0f172a; --muted:#4b5563; --card:#ffffff; --ring:rgba(0,0,0,.15);} 
     }
+
+    /* Barrierefreiheit: Animiere weniger bei reduzierter Bewegung */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+
+    /* ========== Globales Reset & Layout ========== */
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);-webkit-font-smoothing:antialiased;}
+    body{
+      margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg); color:var(--txt); -webkit-font-smoothing:antialiased;
+    }
     a{color:inherit}
     .container{width:min(1200px,92%);margin-inline:auto}
-    .header{position:sticky;top:0;z-index:50;backdrop-filter:saturate(140%) blur(10px);background:color-mix(in oklab, var(--bg-elev) 70%, transparent);border-bottom:1px solid rgba(255,255,255,.08)}
+
+    /* ========== Header & Navigation ========== */
+    .header{position:sticky;top:0;z-index:50;backdrop-filter:saturate(140%) blur(10px);
+      background:color-mix(in oklab, var(--bg-elev) 70%, transparent);
+      border-bottom:1px solid rgba(255,255,255,.08)}
     .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
     .brand{display:flex;align-items:center;gap:.6rem;font-weight:800;letter-spacing:.2px}
     .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 18px var(--accent)}
     .nav a{opacity:.9;text-decoration:none;font-weight:600}
     .nav a:hover{opacity:1}
     .nav .actions{display:flex;align-items:center;gap:.6rem}
-    .btn{display:inline-flex;align-items:center;gap:.5rem;border:1px solid rgba(255,255,255,.16);padding:.6rem .9rem;border-radius:999px;transition:transform .2s ease, background .2s ease, border-color .2s ease}
+
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;gap:.5rem;border:1px solid rgba(255,255,255,.16);
+      padding:.6rem .9rem;border-radius:999px;transition:transform .2s ease, background .2s ease, border-color .2s ease}
     .btn:hover{transform:translateY(-1px);border-color:var(--ring)}
     .btn.primary{background:var(--accent);border-color:transparent;color:#111}
+
+    /* Visually hidden for skip link etc. */
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-    .hero{isolation:isolate;position:relative;padding:clamp(64px,12vh,120px) 0 64px;background: radial-gradient(1200px 450px at 50% -10%, rgba(255,140,0,.25), transparent 60%), linear-gradient(180deg, color-mix(in oklab, var(--bg) 92%, transparent), var(--bg) 40%)}
+
+    /* ========== Hero Section ========== */
+    .hero{isolation:isolate;position:relative;padding:clamp(64px,12vh,120px) 0 64px;
+      background: radial-gradient(1200px 450px at 50% -10%, rgba(255,140,0,.25), transparent 60%),
+                  linear-gradient(180deg, color-mix(in oklab, var(--bg) 92%, transparent), var(--bg) 40%)}
     .hero-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}
     .kicker{color:var(--accent);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem}
     h1{font-size:clamp(2rem,6vw,3.75rem);line-height:1.08;margin:.35rem 0 1rem;font-weight:800}
     .lead{font-size:clamp(1rem,2.4vw,1.25rem);color:var(--muted);max-width:65ch}
     .hero-cta{margin-top:1.25rem;display:flex;flex-wrap:wrap;gap:.75rem}
-    .card-hero{border-radius:var(--radius);background:linear-gradient(180deg, color-mix(in oklab, var(--card) 80%, transparent), var(--card));box-shadow:var(--shadow);padding:18px;border:1px solid rgba(255,255,255,.06)}
+
+    .card-hero{border-radius:var(--radius);
+      background:linear-gradient(180deg, color-mix(in oklab, var(--card) 80%, transparent), var(--card));
+      box-shadow:var(--shadow);padding:18px;border:1px solid rgba(255,255,255,.06)}
+
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
     .stat{padding:14px;border-radius:14px;background:rgba(255,255,255,.04);text-align:center;border:1px solid rgba(255,255,255,.06)}
     .stat strong{display:block;font-size:1.4rem}
+
+    /* ========== Generische Sektion & Karten ========== */
     section{scroll-margin-top:84px}
     .section{padding:72px 0}
     .section h2{font-size:clamp(1.5rem,3.2vw,2.25rem);margin:0 0 12px}
     .section p.sub{color:var(--muted);max-width:70ch}
+
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:28px}
-    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px; padding:18px; transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px; padding:18px;
+      transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease}
     .card:hover{transform:translateY(-4px);box-shadow:0 30px 60px rgba(0,0,0,.25);border-color:var(--ring)}
     .card h3{font-size:1.1rem;margin:.2rem 0 .4rem;color:var(--accent)}
     .card p{color:var(--muted)}
+
+    /* ========== Slider / Carousel ========== */
     .slider{position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
     .slider-inner{display:flex;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
-    .slide{min-width:100%;aspect-ratio:16/9;display:grid;place-items:center;background:linear-gradient(120deg,#141b35,#0b1020);color:var(--muted)}
+    .slide{min-width:100%;aspect-ratio:16/9;display:grid;place-items:center;
+      background:linear-gradient(120deg,#141b35,#0b1020);color:var(--muted)}
     .dots{display:flex;gap:8px;justify-content:center;margin-top:12px}
     .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);border:none}
     .dot[aria-current="true"]{background:var(--accent)}
+
+    /* ========== FAQ ========== */
     details{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px}
     details+details{margin-top:10px}
     summary{cursor:pointer;font-weight:700}
     summary::-webkit-details-marker{display:none}
     details p{color:var(--muted);margin:.6rem 0 0}
+
+    /* ========== Kontakt ========== */
     .contact-card{display:grid;grid-template-columns:1.1fr .9fr;gap:22px}
     .form{display:grid;gap:10px}
-    .form input,.form textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit}
+    .form input,.form textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);color:inherit}
     .form input:focus,.form textarea:focus{outline:2px solid var(--ring);outline-offset:2px}
     .map{border-radius:14px;min-height:320px;border:1px solid rgba(255,255,255,.08);overflow:hidden}
+
+    /* ========== Footer ========== */
     footer{padding:28px 0;border-top:1px solid rgba(255,255,255,.08);color:var(--muted)}
+
+    /* ========== Responsive Breakpoints ========== */
     @media (max-width: 900px){
       .hero-grid{grid-template-columns:1fr}
       .contact-card{grid-template-columns:1fr}
@@ -89,18 +156,25 @@
   </style>
 </head>
 <body>
+  <!-- Test-Banner: klarer Hinweis, dass die Seite Demo-Zwecken dient -->
   <div style="background:#ffcc00;color:#111;text-align:center;padding:10px;font-weight:bold;">
     Hinweis: Dies ist eine <u>Testseite</u> von HiBuy GbR. 
     Alle Inhalte dienen ausschließlich zu Demonstrationszwecken – kein Angebot, keine Rechtswirkung.
   </div>
 
+  <!-- Skip-Link für Screenreader/Tastatur -->
   <a class="sr-only" href="#main">Zum Inhalt springen</a>
-  <header class="header">
+
+  <!-- ======= Header & Navigation ======= -->
+  <header class="header" role="banner">
     <div class="container nav" role="navigation" aria-label="Hauptnavigation">
+      <!-- Marke/Logo -->
       <div class="brand">
         <span class="dot" aria-hidden="true"></span>
         <a href="#hero" aria-label="HiBuy Start">HiBuy</a>
       </div>
+
+      <!-- Primäre Seitenlinks -->
       <nav class="links" aria-label="Seitenlinks">
         <a href="#angebot">Angebot</a>
         <a href="#showcase">Automaten</a>
@@ -108,14 +182,18 @@
         <a href="#kontakt">Kontakt</a>
         <a class="btn" href="impressum.html">Impressum</a>
       </nav>
+
+      <!-- Aktionen (Theme + CTA) -->
       <div class="actions">
-        <button id="themeToggle" class="btn" aria-pressed="false" aria-label="Dark/Light umschalten">🌙</button>
+        <button id="themeToggle" class="btn" aria-pressed="false" aria-label="Dark/Light umschalten" type="button">🌙</button>
         <a class="btn primary" href="#kontakt">Aufstellung anfragen</a>
       </div>
     </div>
   </header>
 
+  <!-- ======= Hauptinhalt ======= -->
   <main id="main">
+    <!-- Hero: Value Proposition + kleine KPIs + Showcase-Slider -->
     <section id="hero" class="hero">
       <div class="container hero-grid">
         <div>
@@ -126,12 +204,16 @@
             <a class="btn primary" href="#angebot">Mehr erfahren</a>
             <a class="btn" href="#kontakt">Standort vorschlagen</a>
           </div>
+
+          <!-- Mini-Stats/Kennzahlen -->
           <div class="stats" aria-label="Kennzahlen">
             <div class="stat"><strong>24/7</strong><span>Verfügbarkeit</span></div>
             <div class="stat"><strong>&lt; 2 Std.</strong><span>Refill-Reaktionszeit*</span></div>
             <div class="stat"><strong>100%</strong><span>Bargeldlos möglich</span></div>
           </div>
         </div>
+
+        <!-- Hero-Slider (Platzhalter – ersetze Slides durch echte Bilder) -->
         <div class="card-hero" aria-hidden="true">
           <div class="slider" id="slider" aria-roledescription="Karussell" aria-label="Automaten-Showcase">
             <div class="slider-inner" id="sliderInner">
@@ -140,15 +222,12 @@
               <figure class="slide"><figcaption>Snack‑Mix</figcaption></figure>
             </div>
           </div>
-          <div class="dots" role="tablist" aria-label="Slides wechseln">
-            <button class="dot" role="tab" aria-controls="slide0" aria-current="true"></button>
-            <button class="dot" role="tab" aria-controls="slide1"></button>
-            <button class="dot" role="tab" aria-controls="slide2"></button>
-          </div>
+          <div class="dots" role="tablist" aria-label="Slides wechseln" id="dots1"></div>
         </div>
       </div>
     </section>
 
+    <!-- Angebot: modulare Kacheln -->
     <section id="angebot" class="section">
       <div class="container">
         <h2>Unser Angebot</h2>
@@ -182,6 +261,7 @@
       </div>
     </section>
 
+    <!-- Showcase: zweiter Slider -->
     <section id="showcase" class="section">
       <div class="container">
         <h2>So sehen unsere Automaten aus</h2>
@@ -193,10 +273,11 @@
             <figure class="slide"><figcaption>Kaffeeautomat</figcaption></figure>
           </div>
         </div>
-        <div class="dots" id="dots2"></div>
+        <div class="dots" id="dots2" role="tablist" aria-label="Slides wechseln"></div>
       </div>
     </section>
 
+    <!-- FAQ: Details/Akkordeon -->
     <section id="faq" class="section">
       <div class="container">
         <h2>Häufige Fragen</h2>
@@ -219,35 +300,48 @@
       </div>
     </section>
 
+    <!-- Kontakt: Formular + Map/Adresse -->
     <section id="kontakt" class="section">
       <div class="container contact-card">
         <div>
           <h2>Kontakt & Standortvorschlag</h2>
           <p class="sub">Sag uns kurz Bescheid – wir melden uns schnell zurück.</p>
+
+          <!--
+            Formular ist clientseitig validiert (required + JS). 
+            Für Produktion: action/POST an Backend, Captcha/Spam-Schutz, Erfolgsseite.
+          -->
           <form class="form" id="contactForm" novalidate>
             <label class="sr-only" for="name">Name</label>
-            <input id="name" name="name" placeholder="Dein Name" required />
+            <input id="name" name="name" placeholder="Dein Name" required autocomplete="name" />
+
             <label class="sr-only" for="email">E-Mail</label>
-            <input id="email" name="email" type="email" placeholder="E‑Mail" required />
+            <input id="email" name="email" type="email" placeholder="E‑Mail" required autocomplete="email" inputmode="email" />
+
             <label class="sr-only" for="message">Nachricht</label>
             <textarea id="message" name="message" rows="4" placeholder="Deine Nachricht ..." required></textarea>
+
             <button class="btn primary" type="submit">Absenden</button>
             <p id="formNote" class="sub" aria-live="polite"></p>
           </form>
         </div>
+
+        <!-- Karte + Kontaktdaten -->
         <div>
           <div class="map" aria-label="Karte">
-            <iframe title="HiBuy Standort" width="100%" height="100%" frameborder="0" style="border:0" 
-              src="https://www.openstreetmap.org/export/embed.html?bbox=9.299%2C48.733%2C9.334%2C48.755&layer=mapnik" allowfullscreen></iframe>
+            <iframe title="HiBuy Standort" width="100%" height="100%" frameborder="0" style="border:0"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=9.299%2C48.733%2C9.334%2C48.755&layer=mapnik"
+              loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
           </div>
-          <div style="margin-top:12px;color:var(--muted)">
-            HiBuy GbR · Neckarstraße 27 · 73728 Esslingen am Neckar · ☎️ +49 160 50 74 730 · ✉️ hibuy@gmx.de
-          </div>
+          <address style="margin-top:12px;color:var(--muted);font-style:normal">
+            HiBuy GbR · Neckarstraße 27 · 73728 Esslingen am Neckar · ☎️ <a href="tel:+491605074730">+49 160 50 74 730</a> · ✉️ <a href="mailto:hibuy@gmx.de">hibuy@gmx.de</a>
+          </address>
         </div>
       </div>
     </section>
   </main>
 
+  <!-- ======= Footer ======= -->
   <footer>
     <div class="container" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <small>© 2025 HiBuy GbR. Alle Rechte vorbehalten.</small>
@@ -255,44 +349,81 @@
     </div>
   </footer>
 
+  <!-- ======= JavaScript ======= -->
   <script>
+    // Smooth-Scroll für interne Ankerlinks
     document.querySelectorAll('a[href^="#"]').forEach(a=>{
-      a.addEventListener('click',e=>{const id=a.getAttribute('href');if(id.length>1){e.preventDefault();document.querySelector(id)?.scrollIntoView({behavior:'smooth'});}})
+      a.addEventListener('click',e=>{
+        const id=a.getAttribute('href');
+        if(id.length>1){
+          const el = document.querySelector(id);
+          if(el){ e.preventDefault(); el.scrollIntoView({behavior:'smooth'}); }
+        }
+      })
     })
+
+    // ========== Theme-Toggle (Dark/Light) ==========
     const themeBtn = document.getElementById('themeToggle');
     const applyTheme = (t)=>{
+      // Setzt color-scheme (wirken auf Scrollbars, Form Controls, etc.)
       document.documentElement.style.colorScheme = t;
+      // Icon-Logik: Sonne für Light, Mond für Dark
       themeBtn.textContent = t==='dark' ? '🌙' : '☀️';
-      themeBtn.setAttribute('aria-pressed', t==='dark');
+      themeBtn.setAttribute('aria-pressed', String(t==='dark'));
       localStorage.setItem('hibuy-theme', t);
     }
+    // Startzustand: gespeicherter Wert oder Systempräferenz
     const stored = localStorage.getItem('hibuy-theme');
-    if(stored){ applyTheme(stored); }
+    const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(stored ?? (prefersDark ? 'dark' : 'light'));
+
     themeBtn?.addEventListener('click',()=>{
-      const current = localStorage.getItem('hibuy-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      applyTheme(current==='dark'?'light':'dark');
+      const current = localStorage.getItem('hibuy-theme') || (prefersDark ? 'dark' : 'light');
+      applyTheme(current==='dark' ? 'light' : 'dark');
     });
+
+    // ========== Minimaler Slider/Carousel ========== 
+    // Wiederverwendbare Fabrikfunktion: erzeugt Dots, Auto-Rotation, Click-Navigation
     const makeSlider = (innerSel, dotsSel) => {
       const inner = document.querySelector(innerSel);
       if(!inner) return;
+
       const slides = Array.from(inner.children);
       let i = 0; let timer;
+
+      // Dots-Container: sichtbar übergeben oder Nachbar-Element
       const dotsWrap = dotsSel ? document.querySelector(dotsSel) : inner.parentElement.nextElementSibling;
       const dots = slides.map((_,idx)=>{
-        const b=document.createElement('button');b.className='dot';b.setAttribute('aria-label',`Slide ${idx+1}`);b.addEventListener('click',()=>go(idx));dotsWrap.appendChild(b);return b;
+        const b=document.createElement('button');
+        b.className='dot';
+        b.type='button';
+        b.setAttribute('aria-label',`Slide ${idx+1}`);
+        b.addEventListener('click',()=>go(idx));
+        dotsWrap.appendChild(b);
+        return b;
       });
+
+      // Wechselt die Slide
       const go = (idx)=>{
         i = (idx+slides.length)%slides.length;
         inner.style.transform = `translateX(${-100*i}%)`;
-        dots.forEach((d,di)=>d.setAttribute('aria-current', di===i));
+        dots.forEach((d,di)=>d.setAttribute('aria-current', String(di===i)));
       }
+
+      // Auto-Play (pausiert beim Pointerdown)
       const auto = ()=>{ timer=setInterval(()=>{go(i+1)}, 3500) }
+
       go(0); auto();
       inner.addEventListener('pointerdown', ()=>{clearInterval(timer)},{once:true});
+
       return {go};
     }
-    makeSlider('#sliderInner');
+
+    // Zwei Slider auf der Seite
+    makeSlider('#sliderInner', '#dots1');
     makeSlider('#sliderInner2', '#dots2');
+
+    // ========== Reveal-Effekt für Karten (On-Scroll) ==========
     const revealEls = document.querySelectorAll('[data-reveal] .card');
     const io = new IntersectionObserver((entries)=>{
       for(const e of entries){
@@ -306,6 +437,8 @@
       }
     }, {threshold:.12});
     revealEls.forEach(el=>io.observe(el));
+
+    // ========== Kontaktformular (Client-Side) ==========
     document.getElementById('contactForm')?.addEventListener('submit', (e)=>{
       e.preventDefault();
       const fd = new FormData(e.currentTarget);
@@ -313,11 +446,17 @@
       const email = fd.get('email')?.toString().trim();
       const msg = fd.get('message')?.toString().trim();
       const note = document.getElementById('formNote');
+
+      // Simple Validierung
       if(!name||!email||!msg){ note.textContent = 'Bitte alle Felder ausfüllen.'; return; }
+
+      // TODO: Server-Request (fetch/POST) an Backend oder Form-Dienst
       note.textContent = 'Danke! Wir melden uns in Kürze.';
       e.currentTarget.reset();
     });
   </script>
+
+  <!-- Strukturierte Daten (LocalBusiness) für SEO/Rich Results -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
