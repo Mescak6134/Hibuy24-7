@@ -17,14 +17,22 @@
   <link rel="icon" href="/assets/favicon.ico" />
   <link rel="manifest" href="/assets/site.webmanifest" />
 
-  <!-- Early-apply Theme (verhindert FOUC). Default = light -->
+  <!-- Early-apply Theme -->
   <script>
   (() => {
     try {
-      const t = localStorage.getItem('hibuy-theme') || 'light';
-      document.documentElement.dataset.theme = t;
-      document.documentElement.style.colorScheme = t;
-    } catch (e) {}
+      const ref = document.referrer;
+      const sameOrigin = ref && new URL(ref).origin === location.origin;
+      const stored = localStorage.getItem('hibuy-theme');
+      const initial = sameOrigin && stored ? stored : 'light';
+      document.documentElement.dataset.theme = initial;
+      document.documentElement.style.colorScheme = initial;
+      window.__initialTheme = initial;
+    } catch (e) {
+      document.documentElement.dataset.theme = 'light';
+      document.documentElement.style.colorScheme = 'light';
+      window.__initialTheme = 'light';
+    }
   })();
   </script>
 
@@ -34,8 +42,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
 
   <style>
-    /* ========= Design Tokens =========
-       Base = LIGHT (Default), DARK via [data-theme="dark"] */
     :root{
       --bg:#f6f7fb; --bg-elev:#ffffff; --txt:#0f172a; --muted:#4b5563;
       --accent:#ff8c00; --card:#ffffff; --ring:rgba(0,0,0,.15);
@@ -47,12 +53,6 @@
       --shadow:0 20px 60px rgba(0,0,0,.35);
     }
 
-    /* Motion-Preference respektieren */
-    @media (prefers-reduced-motion: reduce){
-      *{animation:none !important; transition:none !important;}
-    }
-
-    /* ========= Base/Layout ========= */
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
@@ -62,13 +62,18 @@
     a{color:inherit}
     .container{width:min(1000px,92%);margin-inline:auto}
 
-    /* Header/Nav */
-    .header{position:sticky;top:0;z-index:50;backdrop-filter:saturate(140%) blur(10px);
+    .header{
+      position:sticky;
+      top:0;
+      z-index:50;
+      backdrop-filter:saturate(140%) blur(10px);
       background:color-mix(in oklab, var(--bg-elev) 82%, transparent);
-      border-bottom:1px solid rgba(0,0,0,.06)}
-    :root[data-theme="dark"] .header{border-bottom:1px solid rgba(255,255,255,.08)}
+      box-shadow:0 4px 12px rgba(0,0,0,.08);
+    }
+
     .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
     .brand{display:flex;align-items:center;gap:.6rem;font-weight:800;letter-spacing:.2px}
+    .brand a{font-weight:800;letter-spacing:.2px;text-decoration:none} /* Unterstrich entfernt */
     .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 18px var(--accent)}
     .links a{opacity:.9;text-decoration:none;font-weight:600}
     .links a:hover{opacity:1}
@@ -82,9 +87,7 @@
 
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
-    /* Page header */
-    .pagehead{
-      padding:48px 0 16px;
+    .pagehead{padding:48px 0 16px;
       background: radial-gradient(900px 320px at 50% -10%, rgba(255,140,0,.18), transparent 60%),
                   linear-gradient(180deg, color-mix(in oklab, var(--bg) 92%, transparent), var(--bg) 40%);
     }
@@ -92,12 +95,8 @@
     h1{font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.1;margin:.35rem 0 0;font-weight:800}
     .lead{color:var(--muted);max-width:70ch}
 
-    /* Content cards */
     .section{padding:28px 0 60px}
-    .card{
-      background:var(--card);border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:20px;
-      box-shadow:var(--shadow);
-    }
+    .card{background:var(--card);border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
     :root[data-theme="dark"] .card{border-color:rgba(255,255,255,.08)}
     .card h2{font-size:1.15rem;margin:.2rem 0 .6rem;color:var(--accent)}
     .grid{display:grid;grid-template-columns:1fr;gap:14px}
@@ -112,7 +111,6 @@
 <body>
   <a class="sr-only" href="#main">Zum Inhalt springen</a>
 
-  <!-- ===== Header ===== -->
   <header class="header" role="banner">
     <div class="container nav" role="navigation" aria-label="Hauptnavigation">
       <div class="brand">
@@ -126,12 +124,10 @@
 
       <div class="actions">
         <button id="themeToggle" class="btn" aria-pressed="false" aria-label="Dark/Light umschalten" type="button">☀️</button>
-        <a class="btn primary" href="index.html#kontakt">Aufstellung anfragen</a>
       </div>
     </div>
   </header>
 
-  <!-- ===== Page Head ===== -->
   <div class="pagehead">
     <div class="container">
       <span class="kicker">Rechtliche Informationen</span>
@@ -140,10 +136,8 @@
     </div>
   </div>
 
-  <!-- ===== Main ===== -->
   <main id="main" class="section">
     <div class="container grid">
-      <!-- Anbieter -->
       <section class="card" aria-labelledby="card-anbieter">
         <h2 id="card-anbieter">Anbieter</h2>
         <p><strong>HiBuy GbR</strong></p>
@@ -153,52 +147,51 @@
           Deutschland
         </address>
         <p>
-          Telefon: <a href="tel:+491605074730">+49 </a><br/>
+          Telefon: <a href="tel:+49">+49</a><br/>
           E-Mail: <a href="mailto:hibuy@gmx.de">hibuy@gmx.de</a>
         </p>
-        <a>Vertreten durch die Gesellschafter</a><br/>
-        </a>Mesut Sancak</a><br/>
-        </a>Burak Taha Yigit</a>
+        <p>Vertreten durch die Gesellschafter:<br/>
+        Mesut Sancak<br/>
+        Burak Taha Yigit</p>
       </section>
 
-      <!-- USt-ID / Register / Aufsicht -->
       <section class="card" aria-labelledby="card-register">
         <h2 id="card-register">Register & Kennnummern</h2>
-        <div class="pair"><strong>USt-IdNr.:</strong><div><!-- Falls vorhanden eintragen, z. B. DE123456789 -->noch nicht vergeben </div></div>
+        <div class="pair"><strong>USt-IdNr.:</strong><div>noch nicht vergeben</div></div>
         <div class="pair"><strong>Registereintrag:</strong><div>Für eine GbR besteht in der Regel keine Eintragungspflicht im Handelsregister.</div></div>
-        <!-- Optional: zuständige Aufsichtsbehörde (sofern relevant) -->
       </section>
 
-      <!-- Haftung -->
       <section class="card" aria-labelledby="card-haftung">
-        <h2 id="card-haftung">Haftung für Inhalte & Links</h2>
-        <p>Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt.</p>
-        <p>Unsere Seiten enthalten ggf. Links zu externen Webseiten Dritter, auf deren Inhalte wir keinen Einfluss haben. Für diese fremden Inhalte übernehmen wir keine Haftung. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich.</p>
+        <h2 id="card-haftung">Haftung für Inhalte</h2>
+        <p>Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG nach den allgemeinen Gesetzen für eigene Inhalte auf diesen Seiten verantwortlich. Nach den §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen dauerhaft zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.</p>
+        <p>Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt. Eine diesbezügliche Haftung ist jedoch erst ab dem Zeitpunkt der Kenntnis einer konkreten Rechtsverletzung möglich. Bei Bekanntwerden entsprechender Rechtsverletzungen werden wir diese Inhalte umgehend entfernen.</p>
+
+        <h2>Haftung für Links</h2>
+        <p>Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich.</p>
+        <p>Die verlinkten Seiten wurden zum Zeitpunkt der Verlinkung auf mögliche Rechtsverstöße überprüft. Rechtswidrige Inhalte waren zu diesem Zeitpunkt nicht erkennbar. Eine permanente inhaltliche Kontrolle der verlinkten Seiten ist jedoch ohne konkrete Anhaltspunkte einer Rechtsverletzung nicht zumutbar. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Links umgehend entfernen.</p>
       </section>
 
-      <!-- Urheberrecht -->
-      <section class="card" aria-labelledby="card-urheber">
-        <h2 id="card-urheber">Urheberrecht</h2>
-        <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Vervielfältigung, Bearbeitung, Verbreitung oder jede Art der Verwertung außerhalb der Grenzen des Urheberrechts bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.</p>
-        <p>Bilder: Eigene Aufnahmen/Renderings (sofern nicht anders gekennzeichnet).</p>
-      </section>
-
-      <!-- Streitbeilegung -->
       <section class="card" aria-labelledby="card-streit">
         <h2 id="card-streit">Streitbeilegung</h2>
-        <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://ec.europa.eu/consumers/odr" rel="nofollow noopener" target="_blank">https://ec.europa.eu/consumers/odr</a>.</p>
+        <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit, die auf den Internetseiten der Europäischen Kommission abrufbar ist.</p>
+        <p>Unsere E-Mail-Adresse ist im Impressum angegeben.</p>
         <p>Wir sind nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen (§ 36 VSBG).</p>
       </section>
 
-      <!-- Stand -->
+      <section class="card" aria-labelledby="card-urheber">
+        <h2 id="card-urheber">Urheberrecht</h2>
+        <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Beiträge Dritter sind als solche gekennzeichnet.</p>
+        <p>Jede Vervielfältigung, Bearbeitung, Verbreitung oder sonstige Verwertung außerhalb der Grenzen des Urheberrechts bedarf der vorherigen schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers. Downloads und Kopien dieser Seite sind nur für den privaten, nicht kommerziellen Gebrauch gestattet.</p>
+        <p>Soweit Inhalte auf dieser Seite nicht vom Betreiber erstellt wurden, werden die Urheberrechte Dritter beachtet. Sollten Sie dennoch eine Urheberrechtsverletzung feststellen, bitten wir um einen Hinweis. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Inhalte umgehend entfernen.</p>
+      </section>
+
       <section class="card" aria-labelledby="card-stand">
         <h2 id="card-stand">Stand</h2>
-        <p>Letzte Aktualisierung: 28.09.2025</p>
+        <p>Letzte Aktualisierung: 29.09.2025</p>
       </section>
     </div>
   </main>
 
-  <!-- ===== Footer ===== -->
   <footer>
     <div class="container" style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <small>© 2025 HiBuy GbR. Alle Rechte vorbehalten.</small>
@@ -208,9 +201,7 @@
     </div>
   </footer>
 
-  <!-- ===== JS: Theme Toggle & kleine UX ===== -->
   <script>
-    // Theme-Toggle (persistiert in localStorage)
     const themeBtn = document.getElementById('themeToggle');
 
     const setTheme = (t)=>{
@@ -218,20 +209,19 @@
       document.documentElement.style.colorScheme = t;
       themeBtn.textContent = t === 'dark' ? '🌙' : '☀️';
       themeBtn.setAttribute('aria-pressed', String(t === 'dark'));
-      localStorage.setItem('hibuy-theme', t);
     };
 
-    // Beim Laden: gespeichertes Theme nehmen, sonst 'light' (Default)
-    const stored = localStorage.getItem('hibuy-theme');
-    setTheme(stored || 'light');
+    const startTheme = window.__initialTheme || 'light';
+    setTheme(startTheme);
 
     themeBtn?.addEventListener('click', ()=>{
       const current = document.documentElement.dataset.theme || 'light';
-      setTheme(current === 'dark' ? 'light' : 'dark');
+      const next = current === 'dark' ? 'light' : 'dark';
+      setTheme(next);
+      try { localStorage.setItem('hibuy-theme', next); } catch (_) {}
     });
   </script>
 
-  <!-- Strukturierte Daten -->
   <script type="application/ld+json">
   {
     "@context":"https://schema.org",
@@ -239,7 +229,7 @@
     "name":"HiBuy GbR",
     "url":"https://example.com",
     "email":"hibuy@gmx.de",
-    "telephone":"+49 ",
+    "telephone":"+49",
     "address":{
       "@type":"PostalAddress",
       "streetAddress":"Neckarstraße 27",
