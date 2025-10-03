@@ -58,14 +58,18 @@
     body{
       margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
       background:var(--bg); color:var(--txt); -webkit-font-smoothing:antialiased;
+      /* Padding-Top wird via JS dynamisch gesetzt, wenn Headerhöhe bekannt ist */
     }
     a{color:inherit}
     .container{width:min(1000px,92%);margin-inline:auto}
 
+    /* Header immer fix oben */
     .header{
-      position:sticky;
-      top:0;
-      z-index:50;
+      position: fixed;   /* vorher: sticky */
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
       backdrop-filter:saturate(140%) blur(10px);
       background:color-mix(in oklab, var(--bg-elev) 82%, transparent);
       box-shadow:0 4px 12px rgba(0,0,0,.08);
@@ -187,7 +191,7 @@
 
       <section class="card" aria-labelledby="card-stand">
         <h2 id="card-stand">Stand</h2>
-        <p>Letzte Aktualisierung: 29.09.2025</p>
+        <p>Letzte Aktualisierung: 04.10.2025</p>
       </section>
     </div>
   </main>
@@ -220,6 +224,24 @@
       setTheme(next);
       try { localStorage.setItem('hibuy-theme', next); } catch (_) {}
     });
+  </script>
+
+  <!-- Dynamischer Versatz für fixen Header -->
+  <script>
+    (function() {
+      const headerEl = document.querySelector('.header');
+      function adjustOffset() {
+        if (!headerEl) return;
+        document.body.style.paddingTop = headerEl.offsetHeight + 'px';
+      }
+      
+      // initial + bei Resize/Font-Load
+      window.addEventListener('load', adjustOffset, { once: true });
+      window.addEventListener('resize', adjustOffset);
+      
+      // Falls Fonts/Assets später nachladen und die Höhe ändern
+      setTimeout(adjustOffset, 300);
+    })();
   </script>
 
   <script type="application/ld+json">
