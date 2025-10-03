@@ -192,7 +192,6 @@
       <!-- Aktionen (Theme + CTA) -->
       <div class="actions">
         <button id="themeToggle" class="btn" aria-pressed="false" aria-label="Dark/Light umschalten" type="button">☀️</button>
-        <a class="btn primary" href="#kontakt">Aufstellung anfragen</a>
       </div>
     </div>
   </header>
@@ -203,35 +202,72 @@
     <section id="hero" class="hero">
       <div class="container hero-grid">
         <div>
-          <span class="kicker">Esslingen & Umgebung</span>
-          <h1>Snacks & Getränke. <br/>Frisch. Schnell. 24/7.</h1>
-          <p class="lead">Wir bringen moderne Automaten an deinen Standort – mit kalten Drinks, heißem Kaffee und Lieblings-Snacks. Betriebssicher, bargeldlos & wartungsarm.</p>
+          <span class="kicker">Für Esslingen & Umgebung</span>
+          <h1>Snacks & Getränke. <br/>Frisch & Schnell 24/7.</h1>
+          <p class="lead">Wir bringen moderne Automaten an unser Standort – mit kalten Drinks und Lieblings-Snacks. Betriebssicher, bargeldlos & wartungsarm.</p>
           <div class="hero-cta">
-            <a class="btn primary" href="#angebot">Mehr erfahren</a>
-            <a class="btn" href="#kontakt">Standort vorschlagen</a>
           </div>
 
           <!-- Mini-Stats -->
           <div class="stats" aria-label="Kennzahlen">
             <div class="stat"><strong>24/7</strong><span>Verfügbarkeit</span></div>
-            <div class="stat"><strong>&lt; 2 Std.</strong><span>Refill-Reaktionszeit*</span></div>
+            <div class="stat"><strong>Beste</strong><span>Refill-Reaktionszeit</span></div>
             <div class="stat"><strong>100%</strong><span>Bargeldlos möglich</span></div>
           </div>
         </div>
 
         <!-- Hero-Slider -->
-        <div class="card-hero" aria-hidden="true">
-          <div class="slider" id="slider" aria-roledescription="Karussell" aria-label="Automaten-Showcase">
-            <div class="slider-inner" id="sliderInner">
-              <figure class="slide"><figcaption>Gekühlte Getränke</figcaption></figure>
-              <figure class="slide"><figcaption>Heißgetränke</figcaption></figure>
-              <figure class="slide"><figcaption>Snack-Mix</figcaption></figure>
-            </div>
-          </div>
-          <div class="dots" role="tablist" aria-label="Slides wechseln" id="dots1"></div>
-        </div>
-      </div>
-    </section>
+<div class="card-hero" aria-hidden="true">
+  <div class="slider" id="slider" aria-roledescription="Karussell" aria-label="Automaten-Showcase">
+    <div class="slider-inner" id="sliderInner">
+      
+      <!-- Erstes Slide Bild Getränk -->
+      <figure class="slide">
+        <img src="assets/images/Getränk%20Dose.png"/>
+      </figure>
+
+      <!-- Zweites Slide Bild Snacks -->
+      <figure class="slide">
+        <img src="assets/images/Snack%20Mix.png"/>
+      </figure>
+      
+    </div>
+  </div>
+  <div class="dots" role="tablist" aria-label="Slides wechseln" id="dots1"></div>
+</div>
+</section>
+
+<!-- CSS direkt im HTML -->
+<style>
+  .slider-inner img {
+    width: 100%;        /* füllt die Breite aus */
+    height: auto;       /* Höhe automatisch skalieren */
+    object-fit: cover;  /* Bild schneidet ggf. etwas ab, bleibt aber proportional */
+    max-height: 80vh;   /* verhindert, dass es zu groß wird (80% Bildschirmhöhe) */
+    display: block;     /* keine weißen Ränder */
+  }
+
+  /* Optional: Slider selbst etwas steuern */
+  .slider {
+    overflow: hidden;
+    position: relative;
+  }
+
+  .slide {
+    margin: 0;
+    padding: 0;
+  }
+
+  .slide figcaption {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #fff;
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+  }
+</style>
 
     <!-- Angebot -->
     <section id="angebot" class="section">
@@ -335,7 +371,7 @@
               loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
           </div>
           <address style="margin-top:12px;color:var(--muted);font-style:normal">
-            HiBuy GbR · Neckarstraße 27 · 73728 Esslingen am Neckar · ☎️ <a href="tel:+491605074730">+49 160 50 74 730</a> · ✉️ <a href="mailto:hibuy@gmx.de">hibuy@gmx.de</a>
+            HiBuy GbR · Neckarstraße 27 · 73728 Esslingen am Neckar · ☎️ <a href="tel:+49 171 90 12 134">+49 171 90 12 134</a> · ✉️ <a href="mailto:hibuy@gmx.de">hibuy@gmx.de</a>
           </address>
         </div>
       </div>
@@ -457,7 +493,7 @@
     "@type": "LocalBusiness",
     "name": "HiBuy GbR",
     "description": "Snack- und Getränkeautomaten – Aufstellung & Service in Esslingen und Umgebung.",
-    "telephone": "+49 ",
+    "telephone": "+49 171 90 12 134",
     "email": "hibuy@gmx.de",
     "address": {
       "@type": "PostalAddress",
