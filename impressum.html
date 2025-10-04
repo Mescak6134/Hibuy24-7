@@ -46,11 +46,16 @@
       --bg:#f6f7fb; --bg-elev:#ffffff; --txt:#0f172a; --muted:#4b5563;
       --accent:#ff8c00; --card:#ffffff; --ring:rgba(0,0,0,.15);
       --shadow:0 20px 60px rgba(0,0,0,.12); --radius:16px;
+      --hdr-shadow:0 4px 12px rgba(0,0,0,.08);
+      --hdr-shadow-strong:0 12px 28px rgba(0,0,0,.20);
+      --progress-h:2px;
     }
     :root[data-theme="dark"]{
       --bg:#0b1020; --bg-elev:#0f172a; --txt:#e5e7eb; --muted:#9aa4b2;
       --accent:#ff8c00; --card:#0f172a; --ring:rgba(255,255,255,.18);
       --shadow:0 20px 60px rgba(0,0,0,.35);
+      --hdr-shadow:0 4px 12px rgba(0,0,0,.25);
+      --hdr-shadow-strong:0 18px 40px rgba(0,0,0,.55);
     }
 
     *{box-sizing:border-box}
@@ -58,34 +63,46 @@
     body{
       margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
       background:var(--bg); color:var(--txt); -webkit-font-smoothing:antialiased;
-      /* Padding-Top wird via JS dynamisch gesetzt, wenn Headerhöhe bekannt ist */
+      /* padding-top wird per JS anhand Header-Höhe gesetzt */
     }
     a{color:inherit}
     .container{width:min(1000px,92%);margin-inline:auto}
 
-    /* Header immer fix oben */
+    /* Fixer Header + Scroll-Schatten + Progress-Bar */
     .header{
-      position: fixed;   /* vorher: sticky */
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 50;
+      position:fixed; top:0; left:0; right:0; z-index:50;
       backdrop-filter:saturate(140%) blur(10px);
       background:color-mix(in oklab, var(--bg-elev) 82%, transparent);
-      box-shadow:0 4px 12px rgba(0,0,0,.08);
+      box-shadow:var(--hdr-shadow);
+      border-bottom:1px solid rgba(0,0,0,.08);
+      transition: box-shadow .25s ease, background .25s ease, border-color .25s ease;
+    }
+    :root[data-theme="dark"] .header{ border-bottom-color: rgba(255,255,255,.08); }
+    .header.scrolled{
+      background:color-mix(in oklab, var(--bg-elev) 92%, transparent);
+      box-shadow:var(--hdr-shadow-strong);
+      border-bottom-color: color-mix(in oklab, var(--ring) 50%, transparent);
+    }
+    .progress{
+      position:absolute; inset:0 0 auto 0; height:var(--progress-h);
+      background: linear-gradient(90deg, var(--accent), color-mix(in oklab, var(--accent) 60%, transparent));
+      transform-origin: 0 50%;
+      transform: scaleX(0);
+      opacity:.9;
+      pointer-events:none;
     }
 
     .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
     .brand{display:flex;align-items:center;gap:.6rem;font-weight:800;letter-spacing:.2px}
-    .brand a{font-weight:800;letter-spacing:.2px;text-decoration:none} /* Unterstrich entfernt */
+    .brand a{font-weight:800;letter-spacing:.2px;text-decoration:none}
     .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 18px var(--accent)}
     .links a{opacity:.9;text-decoration:none;font-weight:600}
     .links a:hover{opacity:1}
     .actions{display:flex;align-items:center;gap:.6rem}
 
     .btn{display:inline-flex;align-items:center;gap:.5rem;border:1px solid rgba(0,0,0,.12);
-      padding:.6rem .9rem;border-radius:999px;transition:transform .2s, background .2s, border-color .2s}
-    .btn:hover{transform:translateY(-1px);border-color:var(--ring)}
+      padding:.6rem .9rem;border-radius:999px;transition:transform .2s, background .2s, border-color .2s, box-shadow .2s}
+    .btn:hover{transform:translateY(-1px);border-color:var(--ring); box-shadow:0 10px 22px rgba(0,0,0,.12)}
     .btn.primary{background:var(--accent);border-color:transparent;color:#111}
     :root[data-theme="dark"] .btn{border-color:rgba(255,255,255,.16)}
 
@@ -116,6 +133,9 @@
   <a class="sr-only" href="#main">Zum Inhalt springen</a>
 
   <header class="header" role="banner">
+    <!-- Progress-Bar -->
+    <div class="progress" aria-hidden="true"></div>
+
     <div class="container nav" role="navigation" aria-label="Hauptnavigation">
       <div class="brand">
         <span class="dot" aria-hidden="true"></span>
@@ -213,6 +233,7 @@
       document.documentElement.style.colorScheme = t;
       themeBtn.textContent = t === 'dark' ? '🌙' : '☀️';
       themeBtn.setAttribute('aria-pressed', String(t === 'dark'));
+      try { localStorage.setItem('hibuy-theme', t); } catch(_) {}
     };
 
     const startTheme = window.__initialTheme || 'light';
@@ -222,25 +243,35 @@
       const current = document.documentElement.dataset.theme || 'light';
       const next = current === 'dark' ? 'light' : 'dark';
       setTheme(next);
-      try { localStorage.setItem('hibuy-theme', next); } catch (_) {}
     });
   </script>
 
-  <!-- Dynamischer Versatz für fixen Header -->
+  <!-- Fixer Header: Offset + Scroll-Schatten + Progress -->
   <script>
     (function() {
       const headerEl = document.querySelector('.header');
+      const progressEl = headerEl?.querySelector('.progress');
+
       function adjustOffset() {
         if (!headerEl) return;
         document.body.style.paddingTop = headerEl.offsetHeight + 'px';
       }
-      
-      // initial + bei Resize/Font-Load
+      function onScroll(){
+        const y = window.scrollY || document.documentElement.scrollTop;
+        headerEl?.classList.toggle('scrolled', y > 2);
+        if(progressEl){
+          const doc = document.documentElement;
+          const h = doc.scrollHeight - doc.clientHeight;
+          const p = h > 0 ? (y / h) : 0;
+          progressEl.style.transform = `scaleX(${p})`;
+        }
+      }
+
       window.addEventListener('load', adjustOffset, { once: true });
       window.addEventListener('resize', adjustOffset);
-      
-      // Falls Fonts/Assets später nachladen und die Höhe ändern
-      setTimeout(adjustOffset, 300);
+      setTimeout(adjustOffset, 300); // falls Fonts nachladen
+      window.addEventListener('scroll', onScroll, {passive:true});
+      onScroll();
     })();
   </script>
 
