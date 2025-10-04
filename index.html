@@ -33,57 +33,58 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
 
   <style>
-    /*
-      ========== Design Tokens (CSS Custom Properties) ==========
-      Theme via :root[data-theme="..."] + LocalStorage.
-    */
+    /* ========= Design Tokens ========= */
     :root{
-      /* Dark-Defaults (werden von data-theme überschrieben) */
-      --bg: #0b1020;
-      --bg-elev: #0f172a;
-      --txt: #e5e7eb;
-      --muted:#9aa4b2;
-      --accent:#ff8c00;
-      --card:#0f172a;
-      --ring:rgba(255,255,255,.18);
-      --shadow: 0 20px 60px rgba(0,0,0,.35);
-      --radius:16px;
+      --bg:#0b1020; --bg-elev:#0f172a; --txt:#e5e7eb; --muted:#9aa4b2;
+      --accent:#ff8c00; --card:#0f172a; --ring:rgba(255,255,255,.18);
+      --shadow:0 20px 60px rgba(0,0,0,.35); --radius:16px;
+      --hdr-shadow:0 4px 12px rgba(0,0,0,.08);
+      --hdr-shadow-strong:0 10px 30px rgba(0,0,0,.35);
+      --progress-h:2px;
     }
-
-    /* Explizite Themes (haben Vorrang) */
     :root[data-theme="light"]{
       --bg:#f6f7fb; --bg-elev:#ffffff; --txt:#0f172a; --muted:#4b5563; --card:#ffffff; --ring:rgba(0,0,0,.15);
       --shadow:0 20px 60px rgba(0,0,0,.12);
+      --hdr-shadow:0 4px 12px rgba(0,0,0,.08);
+      --hdr-shadow-strong:0 12px 28px rgba(0,0,0,.20);
     }
     :root[data-theme="dark"]{
       --bg:#0b1020; --bg-elev:#0f172a; --txt:#e5e7eb; --muted:#9aa4b2; --card:#0f172a; --ring:rgba(255,255,255,.18);
       --shadow:0 20px 60px rgba(0,0,0,.35);
     }
+    @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
 
-    /* (Optional) Systempräferenz – wird von data-theme überschrieben */
-    @media (prefers-color-scheme: light){
-      :root{ --bg:#f6f7fb; --bg-elev:#ffffff; --txt:#0f172a; --muted:#4b5563; --card:#ffffff; --ring:rgba(0,0,0,.15);} 
-    }
-
-    /* Barrierefreiheit: Animiere weniger bei reduzierter Bewegung */
-    @media (prefers-reduced-motion: reduce) {
-      * { animation: none !important; transition: none !important; }
-    }
-
-    /* ========== Globales Reset & Layout ========== */
+    /* ========= Base ========= */
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
       background:var(--bg); color:var(--txt); -webkit-font-smoothing:antialiased;
+      /* padding-top wird per JS gesetzt (Header-Höhe) */
     }
     a{color:inherit}
     .container{width:min(1200px,92%);margin-inline:auto}
 
-    /* ========== Header & Navigation ========== */
-    .header{position:sticky;top:0;z-index:50;backdrop-filter:saturate(140%) blur(10px);
+    /* Fokus sichtbar & schön */
+    :where(a,button,input,textarea,summary):focus-visible{
+      outline:2px solid var(--accent); outline-offset:2px; border-radius:10px;
+    }
+
+    /* ========= Header ========= */
+    .header{
+      position:fixed; top:0; left:0; right:0; z-index:100;
+      backdrop-filter:saturate(140%) blur(10px);
       background:color-mix(in oklab, var(--bg-elev) 70%, transparent);
-      border-bottom:1px solid rgba(255,255,255,.08)}
+      border-bottom:1px solid rgba(255,255,255,.08);
+      box-shadow:var(--hdr-shadow);
+      transition: box-shadow .25s ease, background .25s ease, border-color .25s ease;
+      will-change: transform;
+    }
+    .header.scrolled{
+      background:color-mix(in oklab, var(--bg-elev) 86%, transparent); /* dichter */
+      border-bottom-color: color-mix(in oklab, var(--ring) 50%, transparent);
+      box-shadow:var(--hdr-shadow-strong);
+    }
     .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0}
     .brand{display:flex;align-items:center;gap:.6rem;font-weight:800;letter-spacing:.2px}
     .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 18px var(--accent)}
@@ -91,47 +92,67 @@
     .nav a:hover{opacity:1}
     .nav .actions{display:flex;align-items:center;gap:.6rem}
 
+    /* Fortschrittsbalken oben im Header */
+    .progress{
+      position:absolute; inset:0 0 auto 0; height:var(--progress-h);
+      background: linear-gradient(90deg, var(--accent), color-mix(in oklab, var(--accent) 60%, transparent));
+      transform-origin: 0 50%;
+      transform: scaleX(0);
+      opacity:.9;
+    }
+
     /* Buttons */
-    .btn{display:inline-flex;align-items:center;gap:.5rem;border:1px solid rgba(255,255,255,.16);
-      padding:.6rem .9rem;border-radius:999px;transition:transform .2s ease, background .2s ease, border-color .2s ease}
-    .btn:hover{transform:translateY(-1px);border-color:var(--ring)}
+    .btn{
+      display:inline-flex;align-items:center;gap:.5rem;
+      border:1px solid rgba(255,255,255,.16);
+      padding:.6rem .9rem;border-radius:999px;
+      transition:transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease
+    }
+    .btn:hover{transform:translateY(-1px);border-color:var(--ring); box-shadow:0 10px 22px rgba(0,0,0,.15)}
     .btn.primary{background:var(--accent);border-color:transparent;color:#111}
 
-    /* Visually hidden for skip link etc. */
+    /* A11y */
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
-    /* ========== Hero Section ========== */
-    .hero{isolation:isolate;position:relative;padding:clamp(64px,12vh,120px) 0 64px;
+    /* ========= Hero ========= */
+    .hero{
+      isolation:isolate;position:relative;padding:clamp(64px,12vh,120px) 0 64px;
       background: radial-gradient(1200px 450px at 50% -10%, rgba(255,140,0,.25), transparent 60%),
-                  linear-gradient(180deg, color-mix(in oklab, var(--bg) 92%, transparent), var(--bg) 40%)}
+                  linear-gradient(180deg, color-mix(in oklab, var(--bg) 92%, transparent), var(--bg) 40%);
+      scroll-margin-top: 84px;
+    }
     .hero-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}
     .kicker{color:var(--accent);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem}
     h1{font-size:clamp(2rem,6vw,3.75rem);line-height:1.08;margin:.35rem 0 1rem;font-weight:800}
     .lead{font-size:clamp(1rem,2.4vw,1.25rem);color:var(--muted);max-width:65ch}
     .hero-cta{margin-top:1.25rem;display:flex;flex-wrap:wrap;gap:.75rem}
 
-    .card-hero{border-radius:var(--radius);
+    .card-hero{
+      border-radius:var(--radius);
       background:linear-gradient(180deg, color-mix(in oklab, var(--card) 80%, transparent), var(--card));
-      box-shadow:var(--shadow);padding:18px;border:1px solid rgba(255,255,255,.06)}
+      box-shadow:var(--shadow);padding:18px;border:1px solid rgba(255,255,255,.06)
+    }
 
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
     .stat{padding:14px;border-radius:14px;background:rgba(255,255,255,.04);text-align:center;border:1px solid rgba(255,255,255,.06)}
     .stat strong{display:block;font-size:1.4rem}
 
-    /* ========== Generische Sektion & Karten ========== */
+    /* ========= Sections & Cards ========= */
     section{scroll-margin-top:84px}
     .section{padding:72px 0}
     .section h2{font-size:clamp(1.5rem,3.2vw,2.25rem);margin:0 0 12px}
     .section p.sub{color:var(--muted);max-width:70ch}
 
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-top:28px}
-    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px; padding:18px;
-      transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease}
+    .card{
+      background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px; padding:18px;
+      transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease
+    }
     .card:hover{transform:translateY(-4px);box-shadow:0 30px 60px rgba(0,0,0,.25);border-color:var(--ring)}
     .card h3{font-size:1.1rem;margin:.2rem 0 .4rem;color:var(--accent)}
     .card p{color:var(--muted)}
 
-    /* ========== Slider / Carousel ========== */
+    /* ========= Slider ========= */
     .slider{position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
     .slider-inner{display:flex;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
     .slide{min-width:100%;aspect-ratio:16/9;display:grid;place-items:center;
@@ -140,26 +161,27 @@
     .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);border:none}
     .dot[aria-current="true"]{background:var(--accent)}
 
-    /* ========== FAQ ========== */
+    /* ========= FAQ / Kontakt ========= */
     details{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px}
     details+details{margin-top:10px}
     summary{cursor:pointer;font-weight:700}
     summary::-webkit-details-marker{display:none}
     details p{color:var(--muted);margin:.6rem 0 0}
 
-    /* ========== Kontakt ========== */
     .contact-card{display:grid;grid-template-columns:1.1fr .9fr;gap:22px}
     .form{display:grid;gap:10px}
-    .form input,.form textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.04);color:inherit}
+    .form input,.form textarea{
+      width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);color:inherit
+    }
     .form input:focus,.form textarea:focus{outline:2px solid var(--ring);outline-offset:2px}
     .map{border-radius:14px;min-height:320px;border:1px solid rgba(255,255,255,.08);overflow:hidden}
 
-    /* ========== Footer ========== */
+    /* ========= Footer ========= */
     footer{padding:28px 0;border-top:1px solid rgba(255,255,255,.08);color:var(--muted)}
 
-    /* ========== Responsive Breakpoints ========== */
-    @media (max-width: 900px){
+    /* ========= Responsive ========= */
+    @media (max-width:900px){
       .hero-grid{grid-template-columns:1fr}
       .contact-card{grid-template-columns:1fr}
     }
@@ -168,35 +190,35 @@
 <body>
   <!-- Test-Banner -->
   <div style="background:#ffcc00;color:#111;text-align:center;padding:10px;font-weight:bold;">
-    Hinweis: Dies ist eine <u>Testseite</u> von HiBuy GbR. 
+    Hinweis: Dies ist eine <u>Testseite</u> von HiBuy GbR.
     Alle Inhalte dienen ausschließlich zu Demonstrationszwecken – kein Angebot, keine Rechtswirkung.
   </div>
 
   <!-- Skip-Link -->
   <a class="sr-only" href="#main">Zum Inhalt springen</a>
 
-  <!-- ======= Header & Navigation ======= -->
+  <!-- ======= Header ======= -->
   <header class="header" role="banner">
+    <!-- Fortschrittsbalken -->
+    <div class="progress" aria-hidden="true"></div>
+
     <div class="container nav" role="navigation" aria-label="Hauptnavigation">
-      <!-- Marke/Logo -->
       <div class="brand">
         <span class="dot" aria-hidden="true"></span>
         <a href="#hero" aria-label="HiBuy Start">HiBuy</a>
       </div>
 
-      <!-- Primäre Seitenlinks -->
       <nav class="links" aria-label="Seitenlinks">
         <a class="btn" href="impressum.html">Impressum</a>
       </nav>
 
-      <!-- Aktionen (Theme + CTA) -->
       <div class="actions">
         <button id="themeToggle" class="btn" aria-pressed="false" aria-label="Dark/Light umschalten" type="button">☀️</button>
       </div>
     </div>
   </header>
 
-  <!-- ======= Hauptinhalt ======= -->
+  <!-- ======= Main ======= -->
   <main id="main">
     <!-- Hero -->
     <section id="hero" class="hero">
@@ -205,10 +227,8 @@
           <span class="kicker">Für Esslingen & Umgebung</span>
           <h1>Snacks & Getränke. <br/>Frisch & Schnell 24/7.</h1>
           <p class="lead">Wir bringen moderne Automaten an unser Standort – mit kalten Drinks und Lieblings-Snacks. Betriebssicher, bargeldlos & wartungsarm.</p>
-          <div class="hero-cta">
-          </div>
+          <div class="hero-cta"></div>
 
-          <!-- Mini-Stats -->
           <div class="stats" aria-label="Kennzahlen">
             <div class="stat"><strong>24/7</strong><span>Verfügbarkeit</span></div>
             <div class="stat"><strong>Beste</strong><span>Refill-Reaktionszeit</span></div>
@@ -217,57 +237,25 @@
         </div>
 
         <!-- Hero-Slider -->
-<div class="card-hero" aria-hidden="true">
-  <div class="slider" id="slider" aria-roledescription="Karussell" aria-label="Automaten-Showcase">
-    <div class="slider-inner" id="sliderInner">
-      
-      <!-- Erstes Slide Bild Getränk -->
-      <figure class="slide">
-        <img src="assets/images/Getränk%20Dose.png"/>
-      </figure>
+        <div class="card-hero" aria-hidden="true">
+          <div class="slider" id="slider" aria-roledescription="Karussell" aria-label="Automaten-Showcase">
+            <div class="slider-inner" id="sliderInner">
+              <figure class="slide"><img src="/assets/images/Getränk Dose.png" alt="Eisgekühlte Getränkedose"/></figure>
+              <figure class="slide"><img src="/assets/images/Snack Mix.png" alt="Snack-Mix"/></figure>
+            </div>
+          </div>
+          <div class="dots" role="tablist" aria-label="Slides wechseln" id="dots1"></div>
+        </div>
+      </div>
+    </section>
 
-      <!-- Zweites Slide Bild Snacks -->
-      <figure class="slide">
-        <img src="assets/images/Snack%20Mix.png"/>
-      </figure>
-      
-    </div>
-  </div>
-  <div class="dots" role="tablist" aria-label="Slides wechseln" id="dots1"></div>
-</div>
-</section>
-
-<!-- CSS direkt im HTML -->
-<style>
-  .slider-inner img {
-    width: 100%;        /* füllt die Breite aus */
-    height: auto;       /* Höhe automatisch skalieren */
-    object-fit: cover;  /* Bild schneidet ggf. etwas ab, bleibt aber proportional */
-    max-height: 80vh;   /* verhindert, dass es zu groß wird (80% Bildschirmhöhe) */
-    display: block;     /* keine weißen Ränder */
-  }
-
-  /* Optional: Slider selbst etwas steuern */
-  .slider {
-    overflow: hidden;
-    position: relative;
-  }
-
-  .slide {
-    margin: 0;
-    padding: 0;
-  }
-
-  .slide figcaption {
-    text-align: center;
-    font-size: 1.2rem;
-    color: #fff;
-    position: absolute;
-    bottom: 10px;
-    left: 0;
-    right: 0;
-  }
-</style>
+    <!-- Slider-Bild-Styles (lokal) -->
+    <style>
+      .slider-inner img{width:100%;height:auto;object-fit:cover;max-height:80vh;display:block}
+      .slider{overflow:hidden;position:relative}
+      .slide{margin:0;padding:0}
+      .slide figcaption{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:1.2rem;color:#fff}
+    </style>
 
     <!-- Angebot -->
     <section id="angebot" class="section">
@@ -275,30 +263,12 @@
         <h2>Unser Angebot</h2>
         <p class="sub">Wähle die passende Kombination aus kalten & warmen Getränken sowie Snacks. Wir kümmern uns um Aufstellung, Befüllung, Telemetrie & Service.</p>
         <div class="grid" data-reveal>
-          <article class="card">
-            <h3>Kalte Getränke</h3>
-            <p>Klassiker & Trend-Drinks, stets perfekt gekühlt. Optional mit Pfand-/Mehrweg-Option.</p>
-          </article>
-          <article class="card">
-            <h3>Warme Getränke</h3>
-            <p>Espresso, Cappuccino, Tee & Kakao – frisch gemahlen, wartungsarm, zuverlässig.</p>
-          </article>
-          <article class="card">
-            <h3>Snacks</h3>
-            <p>Herzhaft & süß – von Protein-Riegeln bis Schoko. Auf Wunsch sortimentspezifisch.</p>
-          </article>
-          <article class="card">
-            <h3>Zahlung</h3>
-            <p>Karte, Handy, QR & Bar. Kontaktlos-First – schnell und friktionsfrei.</p>
-          </article>
-          <article class="card">
-            <h3>Telemetrie</h3>
-            <p>Füllstände & Ausfälle live – proaktiv nachfüllen statt warten.</p>
-          </article>
-          <article class="card">
-            <h3>Service</h3>
-            <p>Regelmäßige Reinigung, schnelle Störungsbeseitigung und freundlicher Support.</p>
-          </article>
+          <article class="card"><h3>Kalte Getränke</h3><p>Klassiker & Trend-Drinks, stets perfekt gekühlt. Optional mit Pfand-/Mehrweg-Option.</p></article>
+          <article class="card"><h3>Warme Getränke</h3><p>Espresso, Cappuccino, Tee & Kakao – frisch gemahlen, wartungsarm, zuverlässig.</p></article>
+          <article class="card"><h3>Snacks</h3><p>Herzhaft & süß – von Protein-Riegeln bis Schoko. Auf Wunsch sortimentspezifisch.</p></article>
+          <article class="card"><h3>Zahlung</h3><p>Karte, Handy, QR & Bar. Kontaktlos-First – schnell und friktionsfrei.</p></article>
+          <article class="card"><h3>Telemetrie</h3><p>Füllstände & Ausfälle live – proaktiv nachfüllen statt warten.</p></article>
+          <article class="card"><h3>Service</h3><p>Regelmäßige Reinigung, schnelle Störungsbeseitigung und freundlicher Support.</p></article>
         </div>
       </div>
     </section>
@@ -323,22 +293,10 @@
     <section id="faq" class="section">
       <div class="container">
         <h2>Häufige Fragen</h2>
-        <details>
-          <summary>Welche Voraussetzungen braucht ein Standort?</summary>
-          <p>Stromanschluss (Standard 230V), trockener, gut erreichbarer Platz sowie die Genehmigung des Besitzers/Verwalters.</p>
-        </details>
-        <details>
-          <summary>Wer übernimmt Befüllung & Wartung?</summary>
-          <p>Wir. Dank Telemetrie sehen wir Füllstände & Störungen und reagieren proaktiv.</p>
-        </details>
-        <details>
-          <summary>Welche Bezahlarten sind möglich?</summary>
-          <p>Kontaktlos (Karte/Smartphone), QR sowie optional Bargeld.</p>
-        </details>
-        <details>
-          <summary>Wie schnell ist die Aufstellung?</summary>
-          <p>Nach Standort-Check i. d. R. innerhalb von 7–14 Tagen.</p>
-        </details>
+        <details><summary>Welche Voraussetzungen braucht ein Standort?</summary><p>Stromanschluss (Standard 230V), trockener, gut erreichbarer Platz sowie die Genehmigung des Besitzers/Verwalters.</p></details>
+        <details><summary>Wer übernimmt Befüllung & Wartung?</summary><p>Wir. Dank Telemetrie sehen wir Füllstände & Störungen und reagieren proaktiv.</p></details>
+        <details><summary>Welche Bezahlarten sind möglich?</summary><p>Kontaktlos (Karte/Smartphone), QR sowie optional Bargeld.</p></details>
+        <details><summary>Wie schnell ist die Aufstellung?</summary><p>Nach Standort-Check i. d. R. innerhalb von 7–14 Tagen.</p></details>
       </div>
     </section>
 
@@ -399,62 +357,49 @@
       })
     });
 
-    // ========== Theme-Toggle (Light default, persists) ==========
+    // Theme Toggle
     const themeBtn = document.getElementById('themeToggle');
-
     const setTheme = (t)=>{
-      document.documentElement.dataset.theme = t;            // CSS Vars via data-attr
-      document.documentElement.style.colorScheme = t;        // native UI (scrollbars)
-      themeBtn.textContent = t === 'dark' ? '🌙' : '☀️';     // Icon für aktuellen Zustand
+      document.documentElement.dataset.theme = t;
+      document.documentElement.style.colorScheme = t;
+      themeBtn.textContent = t === 'dark' ? '🌙' : '☀️';
       themeBtn.setAttribute('aria-pressed', String(t === 'dark'));
       localStorage.setItem('hibuy-theme', t);
     };
-
-    const storedTheme = localStorage.getItem('hibuy-theme');
-    setTheme(storedTheme || 'light'); // Erstes Öffnen: hell
-
+    setTheme(localStorage.getItem('hibuy-theme') || 'light');
     themeBtn?.addEventListener('click',()=>{
       const current = document.documentElement.dataset.theme || 'light';
       setTheme(current === 'dark' ? 'light' : 'dark');
     });
 
-    // ========== Minimaler Slider/Carousel ==========
+    // Slider
     const makeSlider = (innerSel, dotsSel) => {
       const inner = document.querySelector(innerSel);
       if(!inner) return;
-
       const slides = Array.from(inner.children);
-      let i = 0; let timer;
-
+      let i = 0, timer;
       const dotsWrap = dotsSel ? document.querySelector(dotsSel) : inner.parentElement.nextElementSibling;
       const dots = slides.map((_,idx)=>{
         const b=document.createElement('button');
-        b.className='dot';
-        b.type='button';
+        b.className='dot'; b.type='button';
         b.setAttribute('aria-label',`Slide ${idx+1}`);
         b.addEventListener('click',()=>go(idx));
-        dotsWrap.appendChild(b);
-        return b;
+        dotsWrap.appendChild(b); return b;
       });
-
       const go = (idx)=>{
         i = (idx+slides.length)%slides.length;
         inner.style.transform = `translateX(${-100*i}%)`;
         dots.forEach((d,di)=>d.setAttribute('aria-current', String(di===i)));
-      }
-
-      const auto = ()=>{ timer=setInterval(()=>{go(i+1)}, 3500) }
-
+      };
+      const auto = ()=>{ timer=setInterval(()=>{go(i+1)}, 3500) };
       go(0); auto();
       inner.addEventListener('pointerdown', ()=>{clearInterval(timer)},{once:true});
-
       return {go};
-    }
-
+    };
     makeSlider('#sliderInner', '#dots1');
     makeSlider('#sliderInner2', '#dots2');
 
-    // ========== Reveal-Effekt ==========
+    // Reveal-Effekt
     const revealEls = document.querySelectorAll('[data-reveal] .card');
     const io = new IntersectionObserver((entries)=>{
       for(const e of entries){
@@ -469,7 +414,7 @@
     }, {threshold:.12});
     revealEls.forEach(el=>io.observe(el));
 
-    // ========== Kontaktformular ==========
+    // Kontaktformular (Demo)
     document.getElementById('contactForm')?.addEventListener('submit', (e)=>{
       e.preventDefault();
       const fd = new FormData(e.currentTarget);
@@ -477,13 +422,37 @@
       const email = fd.get('email')?.toString().trim();
       const msg = fd.get('message')?.toString().trim();
       const note = document.getElementById('formNote');
-
       if(!name||!email||!msg){ note.textContent = 'Bitte alle Felder ausfüllen.'; return; }
-
-      // TODO: fetch/POST an Backend
       note.textContent = 'Danke! Wir melden uns in Kürze.';
       e.currentTarget.reset();
     });
+
+    // ===== Fixer Header: Body-Offset + Scroll-Schatten + Progress =====
+    (function() {
+      const headerEl = document.querySelector('.header');
+      const progressEl = headerEl?.querySelector('.progress');
+
+      function adjustOffset() {
+        if (!headerEl) return;
+        document.body.style.paddingTop = headerEl.offsetHeight + 'px';
+      }
+      function onScroll(){
+        const y = window.scrollY || document.documentElement.scrollTop;
+        headerEl?.classList.toggle('scrolled', y > 2);
+        if(progressEl){
+          const doc = document.documentElement;
+          const h = doc.scrollHeight - doc.clientHeight;
+          const p = h > 0 ? (y / h) : 0;
+          progressEl.style.transform = `scaleX(${p})`;
+        }
+      }
+
+      window.addEventListener('load', adjustOffset, { once: true });
+      window.addEventListener('resize', adjustOffset);
+      setTimeout(adjustOffset, 300);
+      window.addEventListener('scroll', onScroll, {passive:true});
+      onScroll();
+    })();
   </script>
 
   <!-- Strukturierte Daten (LocalBusiness) -->
